@@ -116,3 +116,22 @@ class HttpdCollector(diamond.collector.Collector):
 
                             # Publish Metric
                             self.publish(metric_name, metric_value)
+                        elif k == 'Scoreboard':
+                            metric_name = 'scoreboard'
+
+                            # Prefix with the nickname?
+                            if len(nickname) > 0:
+                                metric_name = nickname + '.' + metric_name
+
+                            self.publish(metric_name + '.waiting', v.count('_'))
+                            self.publish(metric_name + '.starting', v.count('S'))
+                            self.publish(metric_name + '.reading', v.count('R'))
+                            self.publish(metric_name + '.writing', v.count('W'))
+                            self.publish(metric_name + '.keepalive', v.count('K'))
+                            self.publish(metric_name + '.dnslookup', v.count('D'))
+                            self.publish(metric_name + '.closing', v.count('C'))
+                            self.publish(metric_name + '.logging', v.count('L'))
+                            self.publish(metric_name + '.finishing', v.count('G'))
+                            self.publish(metric_name + '.cleanup', v.count('I'))
+                            self.publish(metric_name + '.open', v.count('.'))
+                            self.publish(metric_name + '.total', len(v))

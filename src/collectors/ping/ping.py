@@ -12,11 +12,19 @@ Only valid for ipv4 hosts currently
 
 Configuration is done by adding in extra keys like this
 
- * target_1 - example.org
- * target_fw - 192.168.0.1
- * target_localhost - localhost
+ * target_1=example.org
+ * target_fw=192.168.0.1
+ * target_localhost=localhost
 
-We extract out the key after target_ and use it in the graphite node we push.
+Results in metrics:
+ * server.hostname.ping.example_org 11
+ * server.hostname.ping.192_168_0_1 34
+ * server.hostname.ping.localhost 66
+
+Option use_target_names changes it to:
+ * server.hostname.ping.1 11
+ * server.hostname.ping.fw 34
+ * server.hostname.ping.localhost 66
 
 """
 
@@ -34,6 +42,7 @@ class PingCollector(diamond.collector.Collector):
             'bin':         'The path to the ping binary',
             'use_sudo':    'Use sudo?',
             'sudo_cmd':    'Path to sudo',
+            'use_target_names': 'Use target suffixes as metric names'
         })
         return config_help
 
@@ -47,6 +56,7 @@ class PingCollector(diamond.collector.Collector):
             'bin':              '/bin/ping',
             'use_sudo':         False,
             'sudo_cmd':         '/usr/bin/sudo',
+            'use_target_names': False
         })
         return config
 
@@ -54,7 +64,11 @@ class PingCollector(diamond.collector.Collector):
         for key in self.config.keys():
             if key[:7] == "target_":
                 host = self.config[key]
-                metric_name = host.replace('.', '_')
+
+                if self.config['use_target_names']:
+                    metric_name = key[7:].replace('.', '_')
+                else:
+                    metric_name = host.replace('.', '_')
 
                 if not os.access(self.config['bin'], os.X_OK):
                     self.log.error("Path %s does not exist or is not executable"
