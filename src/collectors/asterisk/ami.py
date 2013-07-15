@@ -34,9 +34,12 @@ class AsteriskAMI(object):
             data = ""
 
             while not complete:
-                data += self._sock.recv(4096)
+                buf = self._sock.recv(4096)
+                data += buf
 
                 if '\r\n\r\n' in data:
+                    complete = True
+                if buf == '':
                     complete = True
 
             lines = data.replace('\r', '').split('\n')
@@ -101,9 +104,12 @@ class AsteriskAMI(object):
             complete = False
             response = ""
             while not complete:
-                response += self._sock.recv(1024)
+                data = self._sock.recv(1024)
+                response += data
 
                 if '--END COMMAND--' in response:
+                    complete = True
+                if data == '':
                     complete = True
 
             elems = response.split('\r\n')
@@ -120,9 +126,12 @@ class AsteriskAMI(object):
             response = ""
 
             while not complete:
-                response += self._sock.recv(1024)
+                data = self._sock.recv(1024)
+                response += data
 
                 if 'PeerlistComplete' in response:
+                    complete = True
+                if data == '':
                     complete = True
 
             events = response.replace('\r', '').split('\n\n')

@@ -57,13 +57,18 @@ class AsteriskCollector(diamond.collector.Collector):
 
     def collect(self):
 
+        self.log.debug('Creating AMI Interface')
         asterisk_ami = ami.AsteriskAMI(host=self.config['host'], port=self.config['port'],
                                        username=self.config['username'], secret=self.config['secret'])
 
+        self.log.debug('Logging into AMI')
         asterisk_ami.login()
+
+        self.log.debug('Getting IAX Peers')
         iax_peers = asterisk_ami.iax_peers()
         self.publish("iax_peers_total", len(iax_peers))
 
+        self.log.debug('Getting SIP Peers')
         sip_peers = asterisk_ami.sip_peers()
         self.publish("sip_peers_total", len(sip_peers))
 
@@ -81,11 +86,13 @@ class AsteriskCollector(diamond.collector.Collector):
         self.publish("sip_peers_connected", sip_connected)
         self.publish("iax_peers_connected", iax_connected)
 
+        self.log.debug('Getting Channel stats')
         channel_stats = asterisk_ami.channel_stats()
 
         for key,val in channel_stats.items():
             self.publish(key, val)
 
+        self.log.debug('Disconnecting AMI')
         asterisk_ami.disconnect()
 
 

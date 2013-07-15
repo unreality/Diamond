@@ -97,9 +97,9 @@ class GenericSNMPCollector(diamond.collector.Collector):
                 elif 'timeout' in self.config:
                     timeout = int(self.config['timeout'])
                 else:
-                    timeout = 2
+                    timeout = 1
             except ValueError:
-                timeout = 2
+                timeout = 1
 
             if 'oids' in self.config['devices'][device]:
                 for oid in self.config['devices'][device]['oids']:
@@ -141,6 +141,7 @@ class GenericSNMPCollector(diamond.collector.Collector):
         config_help = super(GenericSNMPCollector, self).get_default_config_help()
         config_help.update({
             'timeout': 'Time to wait before SNMP Agent gives up',
+            'retries': 'Number of successive snmp retries to get the data',
         })
         return config_help
 
@@ -154,7 +155,8 @@ class GenericSNMPCollector(diamond.collector.Collector):
         config = super(GenericSNMPCollector, self).get_default_config()
         config.update({
             'path': 'genericsnmp',
-            'timeout': 2,
+            'timeout': 1,
+            'retries': 5,
         })
         return config
 
@@ -168,10 +170,10 @@ class GenericSNMPCollector(diamond.collector.Collector):
 
         return oid_tuple
 
-    def _snmp_get_val(self, host, port, community, oid_str, timeout=2):
+    def _snmp_get_val(self, host, port, community, oid_str, timeout=1, retries=5):
         try:
             oid = self._convert_oid(oid_str)
-            udp_transport_target = cmdgen.UdpTransportTarget((host, port), timeout)
+            udp_transport_target = cmdgen.UdpTransportTarget((host, port), timeout=timeout, retries=retries)
             community_data = cmdgen.CommunityData('diamond-agent', community, 0)
             errorIndication, errorStatus, errorIndex, varBinds = cmdgen.CommandGenerator().getCmd(community_data,
                                                                                                   udp_transport_target,
